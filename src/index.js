@@ -1,10 +1,15 @@
+import { SCREEN_WIDTH, SCREEN_HEIGHT } from './constants';
 import Dungeon from './scenes/Dungeon';
 
 const config = {
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: SCREEN_WIDTH,
+  height: SCREEN_HEIGHT,
   physics: {
-    default: 'arcade'
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 2000 },
+      enableBody: true,
+    },
   },
   scene: [Dungeon],
 };
