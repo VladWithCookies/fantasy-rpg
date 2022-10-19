@@ -1,0 +1,12 @@
+{
+  "name": "fantasy-game",
+  "version": "1.0.0",
+  "description": "A fantasy RPG",
+  "main": "index.js",
+  "author": "Vlad Wyderko",
+  "license": "ISC",
+  "dependencies": {
+    "phaser": "^3.55.2",
+    "ramda": "^0.28.0"
+  }
+}
