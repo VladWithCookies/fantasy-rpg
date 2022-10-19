@@ -1,12 +1,19 @@
 {
-  "name": "fantasy-game",
+  "name": "fantasy-rpg",
+  "type": "module",
   "version": "1.0.0",
   "description": "A fantasy RPG",
   "main": "index.js",
   "author": "Vlad Wyderko",
   "license": "ISC",
+  "scripts": {
+    "start": "esbuild --bundle src/index.js --outfile=dist/bundle.js --servedir=dist"
+  },
   "dependencies": {
     "phaser": "^3.55.2",
     "ramda": "^0.28.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.15.11"
   }
 }
