@@ -1,19 +1,28 @@
 {
   "name": "fantasy-rpg",
-  "type": "module",
   "version": "1.0.0",
   "description": "A fantasy RPG",
   "main": "index.js",
   "author": "Vlad Wyderko",
   "license": "ISC",
   "scripts": {
-    "start": "esbuild --bundle src/index.js --outfile=dist/bundle.js --servedir=dist"
+    "dev": "webpack-dev-server --config webpack.development.js",
+    "build": "webpack --config webpack.production.js",
+    "start": "webpack serve --config webpack.production.js"
   },
   "dependencies": {
-    "phaser": "^3.55.2",
-    "ramda": "^0.28.0"
+    "phaser": "^3.55.2"
   },
   "devDependencies": {
-    "esbuild": "^0.15.11"
+    "@babel/core": "^7.19.6",
+    "@babel/preset-env": "^7.19.4",
+    "babel-loader": "^8.2.5",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "phaser-webpack-loader": "^2.0.0",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1",
+    "webpack-merge": "^5.8.0"
   }
 }
