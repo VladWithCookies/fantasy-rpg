@@ -1,8 +1,9 @@
 import { Scene } from 'phaser';
 
 import { SCREEN_HEIGHT, DEFAULT_X_VELOCITY, DEFAULT_Y_VELOCITY, TILE_SIZE } from 'constants';
-import background from 'assets/dungeon/background.png';
-import ground from 'assets/dungeon/ground.png';
+import ground from 'assets/textures/grey-bricks.png';
+import background from 'assets/textures/black-bricks.png';
+import skeleton from 'assets/spritesheets/skeleton.png';
 
 export default class Dungeon extends Scene {
   constructor() {
@@ -10,9 +11,10 @@ export default class Dungeon extends Scene {
   }
 
   preload() {
-    this.load.image('player', 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Pan_Blue_Circle.png');
-    this.load.image('background', background);
     this.load.image('ground', ground);
+    this.load.image('background', background);
+    this.load.image('player', 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Pan_Blue_Circle.png');
+    this.load.spritesheet('skeleton', skeleton, { frameWidth: 108, frameHeight: 212 })
   }
 
   create() {
@@ -37,8 +39,27 @@ export default class Dungeon extends Scene {
     this.ground.body.immovable = true;
     this.ground.body.allowGravity = false;
 
-    this.player = this.physics.add.sprite(200, 200, 'player').setScale(0.1);
+    this.player = this.physics.add.sprite(700, 200, 'player').setScale(0.1);
     this.player.setCollideWorldBounds(true);
+
+    this.skeleton = this.physics.add.sprite(100, 200, 'skeleton');
+    this.skeleton.setCollideWorldBounds(true);
+    this.anims.create({
+      key: 'skeleton-alert',
+      frames: this.anims.generateFrameNumbers('skeleton', { start: 0, end: 3 }),
+      frameRate: 8,
+      repeat: -1
+    });
+    this.skeleton.anims.play('skeleton-alert', true);
+    this.skeleton.move = this.tweens.add({
+      targets: this.skeleton,
+      x: 500,
+      ease: 'Linear',
+      duration: 3000,
+      repeat: -1,
+      yoyo: true,
+      flipX: true
+    });
 
     this.physics.world.setBounds(0, 0, width, height);
     this.cameras.main.setBounds(0, 0, width, height);
@@ -49,6 +70,7 @@ export default class Dungeon extends Scene {
 
   update() {
     this.physics.collide(this.player, this.ground);
+    this.physics.collide(this.skeleton, this.ground);
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-DEFAULT_X_VELOCITY);
