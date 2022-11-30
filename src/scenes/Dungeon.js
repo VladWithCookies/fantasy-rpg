@@ -17,20 +17,21 @@ export default class Dungeon extends Scene {
     this.load.spritesheet('skeleton', skeleton, { frameWidth: 108, frameHeight: 212 })
   }
 
-  create() {
-    const width = 2000;
-    const height = SCREEN_HEIGHT;
-    const centerX = width / 2;
-    const centerY = height / 2;
+  createLevel() {
+    this.width = 2000;
+    this.height = SCREEN_HEIGHT;
 
-    const groundY = height - TILE_SIZE / 2;
-    const groundWidth = width + TILE_SIZE / 4;
+    const centerX = this.width / 2;
+    const centerY = this.height / 2;
+
+    const groundY = this.height - TILE_SIZE / 2;
+    const groundWidth = this.width + TILE_SIZE / 2;
 
     const backgroundX = - centerX;
     const backgroundY = - (centerY + 8);
 
-    const container = this.add.container(width, height);
-    const background = this.add.tileSprite(backgroundX, backgroundY, width, height, 'background');
+    const container = this.add.container(this.width, this.height);
+    const background = this.add.tileSprite(backgroundX, backgroundY, this.width, this.height, 'background');
 
     container.add(background);
 
@@ -38,19 +39,27 @@ export default class Dungeon extends Scene {
     this.physics.add.existing(this.ground);
     this.ground.body.immovable = true;
     this.ground.body.allowGravity = false;
+    this.physics.world.setBounds(0, 0, this.width, this.height);
+  }
 
+  createPlayer() {
     this.player = this.physics.add.sprite(700, 200, 'player').setScale(0.1);
     this.player.setCollideWorldBounds(true);
+  }
 
+  createEnemies() {
     this.skeleton = this.physics.add.sprite(100, 200, 'skeleton');
     this.skeleton.setCollideWorldBounds(true);
+
     this.anims.create({
       key: 'skeleton-alert',
       frames: this.anims.generateFrameNumbers('skeleton', { start: 0, end: 3 }),
       frameRate: 8,
       repeat: -1
     });
+
     this.skeleton.anims.play('skeleton-alert', true);
+
     this.skeleton.move = this.tweens.add({
       targets: this.skeleton,
       x: 500,
@@ -61,17 +70,21 @@ export default class Dungeon extends Scene {
       flipX: true
     });
 
-    this.physics.world.setBounds(0, 0, width, height);
-    this.cameras.main.setBounds(0, 0, width, height);
-    this.cameras.main.startFollow(this.player, true, 0.5, 0.5);
+    this.physics.add.overlap(this.player, this.skeleton, () => {
+      console.log('overlap');
+    });
+  }
 
+  createCamera() {
+    this.cameras.main.setBounds(0, 0, this.width, this.height);
+    this.cameras.main.startFollow(this.player, true, 0.5, 0.5);
+  }
+
+  createControls() {
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
-  update() {
-    this.physics.collide(this.player, this.ground);
-    this.physics.collide(this.skeleton, this.ground);
-
+  updatePlayer() {
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-DEFAULT_X_VELOCITY);
     } else if (this.cursors.right.isDown) {
@@ -83,5 +96,29 @@ export default class Dungeon extends Scene {
     if (this.cursors.space.isDown && this.player.body.blocked.down) {
       this.player.setVelocityY(-DEFAULT_Y_VELOCITY);
     }
+  }
+
+  updateEnemies() {
+    if (Phaser.Math.Distance.BetweenPoints(this.player, this.skeleton) < 200) {
+      this.skeleton.move.stop();
+      this.physics.moveToObject(this.skeleton, this.player, 225);
+      this.skeleton.flipX = this.skeleton.x > this.player.x;
+    }
+  }
+
+  create() {
+    this.createLevel();
+    this.createPlayer();
+    this.createEnemies();
+    this.createCamera();
+    this.createControls();
+  }
+
+  update() {
+    this.physics.collide(this.player, this.ground);
+    this.physics.collide(this.skeleton, this.ground);
+
+    this.updatePlayer();
+    this.updateEnemies();
   }
 }
