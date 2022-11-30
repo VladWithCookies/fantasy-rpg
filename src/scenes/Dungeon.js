@@ -69,10 +69,6 @@ export default class Dungeon extends Scene {
       yoyo: true,
       flipX: true
     });
-
-    this.physics.add.overlap(this.player, this.skeleton, () => {
-      console.log('overlap');
-    });
   }
 
   createCamera() {
@@ -101,8 +97,31 @@ export default class Dungeon extends Scene {
   updateEnemies() {
     if (Phaser.Math.Distance.BetweenPoints(this.player, this.skeleton) < 200) {
       this.skeleton.move.stop();
-      this.physics.moveToObject(this.skeleton, this.player, 225);
       this.skeleton.flipX = this.skeleton.x > this.player.x;
+
+      if (this.player.x < this.skeleton.x && this.skeleton.body.velocity.x >= 0) {
+        this.skeleton.body.velocity.x = -200;
+      } else if (this.player.x > this.skeleton.x && this.skeleton.body.velocity.x <= 0) {
+        this.skeleton.body.velocity.x = 200;
+      }
+
+      if (this.physics.overlap(this.player, this.skeleton)) {
+        this.cameras.main.shake(300, 0.002);
+        this.player.immune = true;
+
+        this.time.addEvent({
+          delay: 300,
+          callback: () => {
+            if (this.player.x < this.skeleton.x) {
+              this.player.body.setVelocityX(2 * -DEFAULT_X_VELOCITY);
+            } else if (this.player.x > this.skeleton.x) {
+              this.player.body.setVelocityX(2 * DEFAULT_X_VELOCITY);
+            }
+
+            this.player.immune = false;
+          }
+        });
+      }
     }
   }
 
