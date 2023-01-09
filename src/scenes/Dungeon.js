@@ -4,6 +4,7 @@ import { SCREEN_HEIGHT, DEFAULT_X_VELOCITY, DEFAULT_Y_VELOCITY, TILE_SIZE } from
 import ground from 'assets/textures/grey-bricks.png';
 import background from 'assets/textures/black-bricks.png';
 import skeleton from 'assets/spritesheets/skeleton.png';
+import skeletonMage from 'assets/spritesheets/skeleton-mage.png';
 
 export default class Dungeon extends Scene {
   constructor() {
@@ -13,8 +14,8 @@ export default class Dungeon extends Scene {
   preload() {
     this.load.image('ground', ground);
     this.load.image('background', background);
-    this.load.image('player', 'https://upload.wikimedia.org/wikipedia/commons/8/8e/Pan_Blue_Circle.png');
-    this.load.spritesheet('skeleton', skeleton, { frameWidth: 108, frameHeight: 212 })
+    this.load.spritesheet('player', skeletonMage, { frameWidth: 624 / 4, frameHeight: 236 });
+    this.load.spritesheet('skeleton', skeleton, { frameWidth: 432 / 4, frameHeight: 212 })
   }
 
   createLevel() {
@@ -43,8 +44,17 @@ export default class Dungeon extends Scene {
   }
 
   createPlayer() {
-    this.player = this.physics.add.sprite(700, 200, 'player').setScale(0.1);
+    this.player = this.physics.add.sprite(700, 200, 'player');
     this.player.setCollideWorldBounds(true);
+
+    this.anims.create({
+      key: 'player-idle',
+      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+      frameRate: 4,
+      repeat: -1
+    });
+
+    this.player.anims.play('player-idle', true);
   }
 
   createEnemies() {
@@ -52,13 +62,13 @@ export default class Dungeon extends Scene {
     this.skeleton.setCollideWorldBounds(true);
 
     this.anims.create({
-      key: 'skeleton-alert',
+      key: 'skeleton-move',
       frames: this.anims.generateFrameNumbers('skeleton', { start: 0, end: 3 }),
       frameRate: 8,
       repeat: -1
     });
 
-    this.skeleton.anims.play('skeleton-alert', true);
+    this.skeleton.anims.play('skeleton-move', true);
 
     this.skeleton.move = this.tweens.add({
       targets: this.skeleton,
