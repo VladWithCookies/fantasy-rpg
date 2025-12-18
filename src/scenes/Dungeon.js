@@ -5,6 +5,7 @@ import ground from 'assets/textures/grey-bricks.png';
 import background from 'assets/textures/black-bricks.png';
 import skeleton from 'assets/spritesheets/skeleton.png';
 import skeletonMage from 'assets/spritesheets/skeleton-mage.png';
+import skull from 'assets/spritesheets/skull.png';
 
 export default class Dungeon extends Scene {
   constructor() {
@@ -14,6 +15,7 @@ export default class Dungeon extends Scene {
   preload() {
     this.load.image('ground', ground);
     this.load.image('background', background);
+    this.load.spritesheet('skull', skull, { frameWidth: 432 / 4, frameHeight: 45 });
     this.load.spritesheet('player', skeletonMage, { frameWidth: 624 / 4, frameHeight: 236 });
     this.load.spritesheet('skeleton', skeleton, { frameWidth: 432 / 4, frameHeight: 212 })
   }
@@ -60,6 +62,7 @@ export default class Dungeon extends Scene {
   createEnemies() {
     this.skeleton = this.physics.add.sprite(100, 200, 'skeleton');
     this.skeleton.setCollideWorldBounds(true);
+    this.skeleton.health = 5;
 
     this.anims.create({
       key: 'skeleton-move',
@@ -79,6 +82,9 @@ export default class Dungeon extends Scene {
       yoyo: true,
       flipX: true
     });
+
+    this.enemies = this.physics.add.group();
+    this.enemies.add(this.skeleton);
   }
 
   createCamera() {
@@ -88,13 +94,41 @@ export default class Dungeon extends Scene {
 
   createControls() {
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.input.on('pointerdown', () => {
+      const time = this.time.now;
+
+      if (time < this.lastFireTime + 300) return;
+
+      this.lastFireTime = time;
+
+      const projectile = this.projectiles.get(this.player.x, this.player.y);
+
+      if (!projectile) return;
+
+      projectile.setActive(true);
+      projectile.setVisible(true);
+      projectile.body.allowGravity = false;
+
+      const direction = this.player.flipX ? -1 : 1;
+
+      projectile.setVelocityX(600 * direction);
+      projectile.setFlipX(this.player.flipX);
+      projectile.anims.play('skull-fly', true);
+
+      this.time.delayedCall(2000, () => {
+        projectile.destroy();
+      });
+    }, this);
   }
 
   updatePlayer() {
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-DEFAULT_X_VELOCITY);
+      this.player.setFlipX(true);
     } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(DEFAULT_X_VELOCITY);
+      this.player.setFlipX(false);
     } else {
       this.player.setVelocityX(0);
     }
@@ -104,8 +138,38 @@ export default class Dungeon extends Scene {
     }
   }
 
+  createProjectiles() {
+    this.anims.create({
+      key: 'skull-fly',
+      frames: this.anims.generateFrameNumbers('skull', {
+        start: 0,
+        end: 3
+      }),
+      frameRate: 12,
+      repeat: -1
+    });
+
+    this.projectiles = this.physics.add.group({
+      defaultKey: 'skull',
+      maxSize: 20
+    });
+
+    this.physics.add.overlap(this.projectiles, this.enemies, (projectile, enemy) => {
+      projectile.destroy();
+
+      enemy.health -= 1;
+      enemy.setTint(0xff0000);
+
+      this.time.delayedCall(100, () => enemy.clearTint());
+
+      if (enemy.health <= 0) {
+        enemy.destroy();
+      }
+    }, null, this);
+  }
+
   updateEnemies() {
-    if (Phaser.Math.Distance.BetweenPoints(this.player, this.skeleton) < 200) {
+    if (Phaser.Math.Distance.BetweenPoints(this.player, this.skeleton) < 200 && this.skeleton.body) {
       this.skeleton.move.stop();
       this.skeleton.flipX = this.skeleton.x > this.player.x;
 
@@ -139,6 +203,7 @@ export default class Dungeon extends Scene {
     this.createLevel();
     this.createPlayer();
     this.createEnemies();
+    this.createProjectiles();
     this.createCamera();
     this.createControls();
   }
